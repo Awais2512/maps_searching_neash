@@ -1,3 +1,7 @@
 # maps_searching_neash
 
-this code takes the the list of neashes you would like to search and the country you want search in and the searches it on the maps and get results including company name ,address , location , and contact  and then save them into a csv file while using python selenium in the headless mode 
+This Python script uses Selenium in headless mode to search for businesses across various niches in a specified country on Google Maps. It retrieves key details such as company name, address, location coordinates, and contact information. The results are then saved into a CSV file.
+
+**Prerequisites**
+1. Ensure geckodriver is present in the same directory as the run.py file for the Firefox WebDriver.
+2. Before running the script, install the latest versions of Python, Selenium, setuptools, and geckodriver.
