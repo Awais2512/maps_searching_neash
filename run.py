@@ -4,26 +4,49 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.chrome.options import Options 
 import time
 import csv
-from selenium.webdriver.firefox.options import Options 
+import os
 # # Setup the driver and navigate to the page
 
-
-def map_search(neash,country):
-    print(f'--------searching for the {neash} in {country}--------')
-    with open(f'{neash}_in_{country}.csv', mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        # Write the header row
-        writer.writerow(['Title', 'Rating', 'Address', 'Directions', 'Contact'])
+def get_driver():
     options = Options()
     options.add_argument("--headless") 
-    driver = webdriver.Firefox(options=options)
+    driver = webdriver.Chrome(options=options)
+    driver.implicitly_wait(3)
+    return driver
+
+def save_to_csv(filename, items:list):
+    """
+    Save data to a CSV file. If the file exists, append the data. If not, create the file and add the data.
+
+    :param filename: Name of the CSV file (e.g., 'neash_in_country.csv')
+    :param items: List of lists, where each inner list represents a row of data
+    """
+    # Check if the file exists
+    file_exists = os.path.isfile(filename)
+
+    with open(filename, mode='a' if file_exists else 'w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        
+        # Write the header row if the file is being created
+        if not file_exists:
+            writer.writerow(['Title', 'Rating', 'Address', 'Directions', 'Contact', "Web Link"])
+        
+        # Write the data rows
+        writer.writerows(items)
+
+def map_search(neash, country , limit: int=100):
+
+    print(f'--------searching for the {neash} in {country}--------')
+    driver = get_driver()
+
     driver.get('https://www.google.com/maps/@31.4971628,74.440827,15z?entry=ttu')  # Replace this with the actual URL
 
     #  Perform a search
     search_box = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "input[aria-label='Search Google Maps']"))
+        EC.presence_of_element_located((By.ID, "searchboxinput"))
     )
     search_box.send_keys(f'{neash} in {country}')
     search_box.send_keys(Keys.RETURN)
@@ -37,7 +60,6 @@ def map_search(neash,country):
         print("Timed out waiting for search results to load.")
         driver.quit()
     # Wait for the element to be present
-    time.sleep(5)
     results_container = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.XPATH, '//*[@id="QA0Szd"]/div/div/div[1]/div[2]/div/div[1]/div/div/div[1]/div[1]'))
     )
@@ -45,75 +67,92 @@ def map_search(neash,country):
     current_scroll = 1
     last_height = driver.execute_script("return arguments[0].scrollHeight", results_container)
     result_list = []
-    # Scroll within the container
-     # Set a limit on the number of scrolls to prevent infinite loops
-    while True:
+    retry_count = 0
+    while len(result_list)<=limit:
         results = results_container.find_elements(By.CLASS_NAME,'hfpxzc')
+        print("*"*80)
         print('Total found results',len(results))
+        print("*"*80)
         # Extract business elements within the container
         for result in results:
             if result not in result_list:
                 try:
+                    driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", result)
                     result_list.append(result)
                     title = result.get_attribute('aria-label')
                     direction = result.get_attribute('href')
                     
-
                     result.click()
+
                     try:
                         rate = driver.find_element(By.CSS_SELECTOR,'div[class="F7nice "]').text
+                    except Exception as e:
+                        rate =  None
                         
-                    except Exception as e:
-                        # rate = result.find_element(By.CSS_SELECTOR ,'div[class="W4Efsd"]')
-                        rate =  'None'
                     try:
-                        address = driver.find_element(By.CSS_SELECTOR,'button[class="CsEnBe"][data-item-id="address"]').find_element(By.CSS_SELECTOR,'div[class="AeaXub"]').find_element(By.CSS_SELECTOR,'div[class="Io6YTe fontBodyMedium kR99db "]').text
+                        address = driver.find_element(By.CSS_SELECTOR,'button[class="CsEnBe"][data-item-id="address"]').text
                     except Exception as e:
-                        address= 'None'
+                        address= None
 
                     try:
-                        contact = driver.find_element(By.CSS_SELECTOR,'button[data-tooltip="Copy phone number"]').find_element(By.CSS_SELECTOR,'div[class="AeaXub"]').find_element(By.CSS_SELECTOR,'div[class="Io6YTe fontBodyMedium kR99db "]').text
+                        contact = driver.find_element(By.CSS_SELECTOR,'button[class="CsEnBe"][data-tooltip="Copy phone number"]').text
                     except Exception as e:  
-                        contact = 'None'
+                        contact = None
+                    try:
+                        web_link = driver.find_element(By.CSS_SELECTOR,'a[class="CsEnBe"][data-item-id="authority"]').get_attribute('href')
+                    except:
+                        try:
+                            web_link = driver.find_element(By.CSS_SELECTOR,'a[class="CsEnBe"][data-tooltip="Open booking link"]').get_attribute('href')
+                        except:
+                            web_link = None
 
                     print('Title:',title)
                     print("rating:",rate)
-                    print('address:',address)
                     print('directions:',direction)
+                    print('address:',address)
                     print('contact:',contact)
-                    if contact!= 'None':
-                        with open(f'{neash}_in_{country}.csv', mode='a', newline='', encoding='utf-8') as file:
-                            writer = csv.writer(file)
-                            # Write the header row
-                            writer.writerow([title, rate, address, direction, contact])
-                        time.sleep(2)
+                    print("Web link:",web_link)
+                    print("-"*50)
+                    if contact!= None:
+                        filename = f'{neash}_in_{country}.csv'
+                        items = [title, rate, address, direction, contact, web_link]
+                        # saving to csv file  
+                        save_to_csv(filename,[items])
+
+                        # time.sleep(2)
                 except:
-                    continue
+                    time.sleep(2)
         # driver.find_element(By.CSS_SELECTOR,'button[class="VfPpkd-icon-LgbsSe yHy1rc eT1oJ mN1ivc"][aria-label="Close"]')
-        time.sleep(2)
         print('Total new results found:',len(result_list))
         # Scroll down to the bottom of the element
+        time.sleep(2)
         driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", results_container)
 
         print(f"Scrolled {current_scroll} times")
         # Wait for new elements to load
-        time.sleep(2)
         current_scroll+=1
         # Calculate new scroll height and compare with last scroll height
         new_height = driver.execute_script("return arguments[0].scrollHeight", results_container)
         if new_height == last_height:
-            print('scroll limit completed')
-            print("Total result found finally",len(result_list))
-            break  # Break the loop if no new content is loaded
-        last_height = new_height
+            retry_count += 1
+            print(f"No new content loaded. Retry attempt: {retry_count}")
+            if retry_count >= 3:  # Break after 3 retries
+                print('Scroll limit completed after 3 retries')
+                print("Total results found finally:", len(result_list))
+                break
+            time.sleep(2)  # Wait for 2 seconds before retrying
+        else:
+            retry_count = 0  # Reset retry counter if new content is loaded
 
-    time.sleep(5)
+        last_height = new_height
     driver.quit()
 
 
 neashes = ['plumbers','electricians','gardeners','cleaners','mouers']
 
-
 for neash in neashes:
     country = 'california'
-    map_search(neash,country)
+    try:
+        map_search(neash,country)
+    except Exception as e:
+        print("Error:",e)
