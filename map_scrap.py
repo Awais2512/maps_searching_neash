@@ -25,17 +25,18 @@ def save_to_csv(filename, items:list):
     :param items: List of lists, where each inner list represents a row of data
     """
     # Check if the file exists
-    file_exists = os.path.isfile(filename)
+    file_dir = 'csv_files'
+    file_path = os.path.join(file_dir,filename)
+    file_exists = os.path.isfile(file_path)
 
-    with open(filename, mode='a' if file_exists else 'w', newline='', encoding='utf-8') as file:
+    with open(file_path, mode='a' if file_exists else 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        
         # Write the header row if the file is being created
         if not file_exists:
             writer.writerow(['Title', 'Rating', 'Address', 'Directions', 'Contact', "Web Link"])
         
         # Write the data rows
-        writer.writerows(items)
+        writer.writerow(items)
 
 def map_search(neash, country , limit: int=100):
 
@@ -79,23 +80,23 @@ def map_search(neash, country , limit: int=100):
                 try:
                     driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", result)
                     result_list.append(result)
-                    title = result.get_attribute('aria-label')
+                    title = result.get_attribute('aria-label').strip()
                     direction = result.get_attribute('href')
                     
                     result.click()
 
                     try:
-                        rate = driver.find_element(By.CSS_SELECTOR,'div[class="F7nice "]').text
+                        rate = driver.find_element(By.CSS_SELECTOR,'div[class="F7nice "]').text.strip()
                     except Exception as e:
                         rate =  None
                         
                     try:
-                        address = driver.find_element(By.CSS_SELECTOR,'button[class="CsEnBe"][data-item-id="address"]').text
+                        address = driver.find_element(By.CSS_SELECTOR,'button[class="CsEnBe"][data-item-id="address"]').text.strip()
                     except Exception as e:
                         address= None
 
                     try:
-                        contact = driver.find_element(By.CSS_SELECTOR,'button[class="CsEnBe"][data-tooltip="Copy phone number"]').text
+                        contact = driver.find_element(By.CSS_SELECTOR,'button[class="CsEnBe"][data-tooltip="Copy phone number"]').text.strip()
                     except Exception as e:  
                         contact = None
                     try:
@@ -117,7 +118,7 @@ def map_search(neash, country , limit: int=100):
                         filename = f'{neash}_in_{country}.csv'
                         items = [title, rate, address, direction, contact, web_link]
                         # saving to csv file  
-                        save_to_csv(filename,[items])
+                        save_to_csv(filename,items)
 
                         # time.sleep(2)
                 except:
@@ -151,7 +152,7 @@ def map_search(neash, country , limit: int=100):
 neashes = ['plumbers','electricians','gardeners','cleaners','mouers']
 
 for neash in neashes:
-    country = 'california'
+    country = 'paris'
     try:
         map_search(neash,country)
     except Exception as e:
