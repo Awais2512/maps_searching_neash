@@ -149,10 +149,12 @@ def map_search(neash, country , limit: int=100):
     driver.quit()
 
 
-neashes = ['plumbers','electricians','gardeners','cleaners','mouers']
+neashes = ['plumbers',
+        #    'electricians','gardeners','cleaners','mouers'
+           ]
 
 for neash in neashes:
-    country = 'paris'
+    country = 'california'
     try:
         map_search(neash,country)
     except Exception as e:
