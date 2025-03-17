@@ -209,8 +209,8 @@ def process_csv(input_file, output_file):
                     **row,
                     'SitemapExists': processed['sitemap_found'],
                     'ContactPageURL': processed['contact_page_url'] or '',
-                    'Emails': ', '.join(processed.get('emails', [])),
-                    'Phones': ', '.join(processed.get('phones', [])),
+                    'Emails': ', '.join(processed['llm_contacts'].get('emails', [])),
+                    'Phones': ', '.join(processed['llm_contacts'].get('phones', [])),
                     'ContactPersons': ', '.join(processed['llm_contacts'].get('contact_persons', [])),
                     'OtherInfo': json.dumps(processed['llm_contacts'].get('other_info', {}))
                 }
