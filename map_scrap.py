@@ -150,9 +150,9 @@ def map_search(neash, country , limit: int=100):
     driver.quit()
 
 
-neashes = ['plumbers',
-           'electricians','cleaners','mouers','Physician',
-           "Dentist", "Psychiatrist" ,"Pharmacist", "Makeup Artist"
+neashes = ['mouers','Physician', "Makeup Artist",
+           "Gynecologist","Technician","Courier",
+           "Chiropodist", "Photographer", "Orthopaedist"
            ]
 
 for neash in neashes:
