@@ -9,6 +9,7 @@ import time
 import csv
 import os
 # # Setup the driver and navigate to the page
+file_dir = 'map_files'
 
 def get_driver():
     options = Options()
@@ -25,7 +26,7 @@ def save_to_csv(filename, items:list):
     :param items: List of lists, where each inner list represents a row of data
     """
     # Check if the file exists
-    file_dir = 'csv_files'
+
     file_path = os.path.join(file_dir,filename)
     file_exists = os.path.isfile(file_path)
 
@@ -150,7 +151,8 @@ def map_search(neash, country , limit: int=100):
 
 
 neashes = ['plumbers',
-        #    'electricians','gardeners','cleaners','mouers'
+           'electricians','cleaners','mouers','Physician',
+           "Dentist", "Psychiatrist" ,"Pharmacist", "Makeup Artist"
            ]
 
 for neash in neashes:

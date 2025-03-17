@@ -216,7 +216,7 @@ def process_csv(input_file, output_file):
                 }
                 print("*"*100)
                 print("Output Response Row:\n ",output_row)
-                input("enter to move further")
+                # input("enter to move further")
                 
                 # Write to file immediately after processing
                 file_exists = os.path.isfile(output_file)
@@ -233,4 +233,33 @@ def process_csv(input_file, output_file):
                 print(f"Error processing row: {str(e)}")
                 continue
 
-process_csv("csv_files/input.csv",'output.csv')
+# process_csv("csv_files/input.csv",'output.csv')
+import glob
+
+def process_all_csv(input_dir, output_dir):
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Get list of CSV files in input directory
+    csv_files = glob.glob(os.path.join(input_dir, '*.csv'))
+    
+    for input_path in csv_files:
+        # Create output path with same filename
+        filename = os.path.basename(input_path)
+        output_path = os.path.join(output_dir, filename)
+        
+        # Process individual file
+        print(f"\nProcessing {filename}...")
+        try:
+            process_csv(input_path, output_path)
+            print(f"Successfully processed: {filename}")
+        except Exception as e:
+            print(f"Failed to process {filename}: {str(e)}")
+
+# Usage example
+
+if __name__ =="__main__":
+    process_all_csv(
+        input_dir='map_files',   # Directory containing input CSVs
+        output_dir='processed_csv'  # Where to save processed files
+    )
