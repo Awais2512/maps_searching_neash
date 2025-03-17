@@ -151,8 +151,9 @@ def map_search(neash, country , limit: int=100):
 
 
 neashes = [
-           "Gynecologist","Technician","Courier",
-           "Chiropodist", "Photographer", "Orthopaedist"
+        # "Surgeon", 'Dermatologist',  "Lawyer", "Anaesthesiologist",
+        # "Paediatrician", "Ophthalmologist", 
+        "Radiologist"
            ]
 
 for neash in neashes:
